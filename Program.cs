@@ -18,19 +18,19 @@ namespace Worker
             try
             {
                 // PostgreSQL Configuration
-                var dbServer = Environment.GetEnvironmentVariable("DB_HOST") ?? "backend-repl.postgres";
+                var dbServer = Environment.GetEnvironmentVariable("DB_HOST") ?? "";
                 var dbPort = Environment.GetEnvironmentVariable("DB_PORT") ?? "5432";
-                var dbUsername = Environment.GetEnvironmentVariable("DB_USERNAME") ?? "db-admin";
-                var dbPassword = Environment.GetEnvironmentVariable("DB_PASSWORD") ?? "ZgTFKL1I2EUu9ZxFatsNNGN983m1SsscLD7v1fEdwL1axEeNnZNiQWJEFJAEQEG3";
-                var dbName = Environment.GetEnvironmentVariable("DB") ?? "postgres";
+                var dbUsername = Environment.GetEnvironmentVariable("DB_USERNAME") ?? "";
+                var dbPassword = Environment.GetEnvironmentVariable("DB_PASSWORD") ?? "";
+                var dbName = Environment.GetEnvironmentVariable("DB") ?? "";
                 var dbSslMode = Environment.GetEnvironmentVariable("DB_SSL_MODE") ?? "Require";
 
                 // Redis Sentinel Configuration
-                var redisSentinelServer = Environment.GetEnvironmentVariable("REDIS_SENTINEL_SERVER") ?? "redis-cluster-s-hl.redis";
-                var redisSentinelPort = Environment.GetEnvironmentVariable("REDIS_SENTINEL_PORT") ?? "26379";
-                var redisSentinelMaster = Environment.GetEnvironmentVariable("REDIS_SENTINEL_MASTER") ?? "mymaster";
-                var redisUser = Environment.GetEnvironmentVariable("REDIS_USER") ?? "default";
-                var redisPassword = Environment.GetEnvironmentVariable("REDIS_PASSWORD") ?? "PLNgP2Zn26H1ipPq";
+                var redisSentinelServer = Environment.GetEnvironmentVariable("REDIS_SENTINEL_HOST") ?? "";
+                var redisSentinelPort = Environment.GetEnvironmentVariable("REDIS_SENTINEL_PORT") ?? "";
+                var redisSentinelMaster = Environment.GetEnvironmentVariable("REDIS_MASTER_NAME") ?? "";
+                var redisUser = Environment.GetEnvironmentVariable("REDIS_USER_NAME") ?? "";
+                var redisPassword = Environment.GetEnvironmentVariable("REDIS_PASSWORD") ?? "";
 
                 var pgsql = OpenDbConnection(dbServer, dbPort, dbUsername, dbPassword, dbName, dbSslMode);
                 var redisConn = OpenRedisConnectionWithSentinel(redisSentinelServer, redisSentinelPort, redisSentinelMaster, redisUser, redisPassword);
