@@ -23,7 +23,7 @@ namespace Worker
                 var dbUsername = Environment.GetEnvironmentVariable("DB_USERNAME") ?? "";
                 var dbPassword = Environment.GetEnvironmentVariable("DB_PASSWORD") ?? "";
                 var dbName = Environment.GetEnvironmentVariable("DB") ?? "";
-                var dbSslMode = Environment.GetEnvironmentVariable("DB_SSL_MODE") ?? "Require";
+                var dbSslMode = Environment.GetEnvironmentVariable("DB_SSL_MODE") ?? "prefer";
 
                 // Redis Sentinel Configuration
                 var redisSentinelServer = Environment.GetEnvironmentVariable("REDIS_SENTINEL_HOST") ?? "";

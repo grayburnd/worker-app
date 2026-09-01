@@ -11,7 +11,6 @@ ARG TARGETPLATFORM
 ARG TARGETARCH
 ARG BUILDPLATFORM
 RUN echo "I am running on $BUILDPLATFORM, building for $TARGETPLATFORM"
-
 WORKDIR /source
 COPY *.csproj .
 RUN dotnet restore -a $TARGETARCH
@@ -21,6 +20,14 @@ RUN dotnet publish -c release -o /app -a $TARGETARCH --self-contained false --no
 
 # app image
 FROM mcr.microsoft.com/dotnet/runtime:7.0
+##Create non-root user to run application from
+RUN groupadd --system appgroup && \
+    useradd --system --gid appgroup --no-create-home appuser
 WORKDIR /app
+##Because compiled source code is in /app
 COPY --from=build /app .
+##Ensure appuser/group owns the apps working directory
+RUN chown appuser:appgroup /app -R
+##Run app as appuser
+USER appuser
 ENTRYPOINT ["dotnet", "Worker.dll"]
