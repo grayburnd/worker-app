@@ -1,0 +1,27 @@
+name: CI [Lint] (Callable ONLY)
+
+on:
+  workflow_call:
+    # inputs:
+    #   uv-version:
+    #     required: true
+    #     type: string
+permissions:
+  contents: read
+  pull-requests: read ##GitLeaks required.
+
+jobs:
+  ci-lint-and-checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - uses: gitleaks/gitleaks-action@v3
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: hadolint/hadolint-action@v3.5.0 ##Lint dockerfile
+        with:
+          dockerfile: Dockerfile
