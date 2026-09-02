@@ -1,0 +1,67 @@
+name: CD Pipeline
+on:
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - main
+    types:
+      - closed
+permissions:
+  contents: read
+  id-token: write
+  pull-requests: write
+env:
+  AWS_REGION: us-east-1
+  AWS_ACCOUNT_ID: "632988741882"
+  APP: "voting-worker"
+  ENVIRONMENT: "prod"
+jobs:
+  ##Only deploy if the PR was merged to Main. Single branch only.
+  deploy:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+
+      - name: Create interpolated env var
+        run: echo "DOCKER_IMAGE_TAG=${{ env.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.APP }}:${{ github.event.pull_request.head.sha }}" >> $GITHUB_ENV
+
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Install Updatecli in the runner
+        uses: updatecli/updatecli-action@v3.6.0
+
+      - uses: aws-actions/configure-aws-credentials@v6
+        with:
+          aws-region: ${{ env.AWS_REGION }}
+          role-to-assume: arn:aws:iam::${{ env.AWS_ACCOUNT_ID }}:role/gh_actions
+
+      #https://github.com/actions/create-github-app-token
+      - uses: actions/create-github-app-token@v3
+        id: app-token
+        with:
+          # required
+          client-id: ${{ vars.APP_CLIENT_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+
+##Update Image Tag in Target GitOps Repo
+      # - name: Run Updatecli in Dry Run mode
+      #   run: |
+      #    updatecli pipeline diff
+      #   env:
+      #     UPDATECLI_GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
+      #     TARGET_IMAGE_TAG: ${{ github.event.pull_request.head.sha }}
+
+      - name: Run Updatecli in Apply mode
+        run: |
+         updatecli pipeline apply --config updatecli/updatecli.yaml
+        env:
+          UPDATECLI_GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
+          TARGET_IMAGE_TAG: ${{ github.event.pull_request.head.sha }}
+          OWNER: ${{ github.repository_owner }}
+          TARGET_REPOSITORY: "frontend-gitops"
+          TARGET_BRANCH: "main"
+          ENVIRONMENT: ${{ env.ENVIRONMENT }}
+          APP: ${{ env.APP }}
