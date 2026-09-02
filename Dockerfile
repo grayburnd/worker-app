@@ -21,13 +21,13 @@ RUN dotnet publish -c release -o /app -a $TARGETARCH --self-contained false --no
 # app image
 FROM mcr.microsoft.com/dotnet/runtime:7.0
 ##Create non-root user to run application from
-RUN groupadd --system appgroup && \
-    useradd --system --gid appgroup --no-create-home appuser
+RUN groupadd --system --gid 999 appgroup && \
+    useradd --system --gid 999 --create-home --uid 999 appuser
 WORKDIR /app
 ##Because compiled source code is in /app
 COPY --from=build /app .
 ##Ensure appuser/group owns the apps working directory
 RUN chown appuser:appgroup /app -R
 ##Run app as appuser
-USER appuser
+USER 999
 ENTRYPOINT ["dotnet", "Worker.dll"]
