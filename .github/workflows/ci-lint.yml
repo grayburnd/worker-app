@@ -14,11 +14,12 @@ jobs:
   ci-lint-and-checks:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
+      - name: Checkout local Git Repo
+        uses: actions/checkout@v7.0.1
         with:
           fetch-depth: 0
 
-      - uses: gitleaks/gitleaks-action@v3
+      - uses: gitleaks/gitleaks-action@v3.0.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
