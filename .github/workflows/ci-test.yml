@@ -12,6 +12,7 @@ env:
   AWS_REGION: us-east-1
   AWS_ACCOUNT_ID: "AWS_ACCOUNT_ID_REDACTED"
   APP: "voting-worker"
+  OIDC_ROLE_NAME: "gh_actions"
 
 permissions:
   id-token: write
@@ -22,27 +23,26 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Create interpolated env var
-        run: echo "DOCKER_IMAGE_TAG=${{ env.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.APP }}:${{ github.event.pull_request.head.sha }}" >> $GITHUB_ENV
+        run: echo "DOCKER_IMAGE_URI=${{ env.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.APP }}:${{ github.event.pull_request.head.sha }}" >> $GITHUB_ENV
 
-      - uses: actions/checkout@v7
-        # with:
-        #   fetch-depth: 0
+      - name: Checkout local Git Repo
+        uses: actions/checkout@v7.0.1
 
-      - uses: aws-actions/configure-aws-credentials@v6
+      - uses: aws-actions/configure-aws-credentials@v6.2.4
         with:
           aws-region: ${{ env.AWS_REGION }}
-          role-to-assume: arn:aws:iam::${{ env.AWS_ACCOUNT_ID }}:role/gh_actions
+          role-to-assume: arn:aws:iam::${{ env.AWS_ACCOUNT_ID }}:role/${{ env.OIDC_ROLE_NAME }}
 
       - name: Login to ECR
         run: aws ecr get-login-password | docker login --username AWS --password-stdin ${{ env.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com
 
       - name: Build and tag docker image
         run: |
-          docker build --pull --no-cache . -t ${{ env.DOCKER_IMAGE_TAG }}
+          docker build --pull --no-cache . -t ${{ env.DOCKER_IMAGE_URI }}
 
       - name: Push docker image
         run: |
-          docker push ${{ env.DOCKER_IMAGE_TAG }}
+          docker push ${{ env.DOCKER_IMAGE_URI }}
 
       # - name: Run Trivy vulnerability scanner
       #   uses: aquasecurity/trivy-action@v0.36.0

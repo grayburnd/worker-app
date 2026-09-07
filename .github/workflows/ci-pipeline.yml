@@ -9,11 +9,7 @@ permissions:
 jobs:
   call-lint:
     uses: $/.github/workflows/ci-lint.yml ##Same repo https://docs.github.com/en/actions/how-tos/reuse-automations/reuse-workflows#calling-a-reusable-workflow
-    # with:
-    #   uv-version: "0.12.1"
   call-test:
     needs: call-lint
     secrets: inherit
     uses: $/.github/workflows/ci-test.yml ##Same repo https://docs.github.com/en/actions/how-tos/reuse-automations/reuse-workflows#calling-a-reusable-workflow
-    # with:
-    #   uv-version: "0.12.1"
