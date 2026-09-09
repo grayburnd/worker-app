@@ -8,33 +8,30 @@ on:
     #     required: true
     #     type: string
 
-env:
-  AWS_REGION: us-east-1
-  AWS_ACCOUNT_ID: "632988741882"
-  APP: "voting-worker"
-  OIDC_ROLE_NAME: "gh_actions"
-
 permissions:
   id-token: write
   contents: read
 
 jobs:
   ci-tests-and-build:
+    environment: 
+      name: prod
+      deployment: false
     runs-on: ubuntu-latest
     steps:
       - name: Create interpolated env var
-        run: echo "DOCKER_IMAGE_URI=${{ env.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.APP }}:${{ github.event.pull_request.head.sha }}" >> $GITHUB_ENV
+        run: echo "DOCKER_IMAGE_URI=${{ vars.AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/${{ env.APP }}:${{ github.event.pull_request.head.sha }}" >> $GITHUB_ENV
 
       - name: Checkout local Git Repo
         uses: actions/checkout@v7.0.1
 
       - uses: aws-actions/configure-aws-credentials@v6.2.4
         with:
-          aws-region: ${{ env.AWS_REGION }}
-          role-to-assume: arn:aws:iam::${{ env.AWS_ACCOUNT_ID }}:role/${{ env.OIDC_ROLE_NAME }}
+          aws-region: ${{ vars.AWS_REGION }}
+          role-to-assume: arn:aws:iam::${{ vars.AWS_ACCOUNT_ID }}:role/${{ vars.OIDC_ROLE_NAME }}
 
       - name: Login to ECR
-        run: aws ecr get-login-password | docker login --username AWS --password-stdin ${{ env.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com
+        run: aws ecr get-login-password | docker login --username AWS --password-stdin ${{ vars.AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com
 
       - name: Build and tag docker image
         run: |
@@ -47,7 +44,7 @@ jobs:
       # - name: Run Trivy vulnerability scanner
       #   uses: aquasecurity/trivy-action@v0.36.0
       #   with:
-      #     image-ref: '${{ env.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.APP }}:${{ github.event.pull_request.head.sha }}'
+      #     image-ref: '${{ vars.AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/${{ env.APP }}:${{ github.event.pull_request.head.sha }}'
       #     format: 'table'
       #     exit-code: '1'
       #     ignore-unfixed: true
