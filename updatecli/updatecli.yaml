@@ -36,7 +36,7 @@ targets:
     kind: yaml
     scmid: default
     spec:
-      file: apps/{{ requiredEnv `APP` }}/{{ requiredEnv `ENVIRONMENT` }}-values.yml
+      file: '{{ requiredEnv `TEAM` }}-gitops/apps/{{ requiredEnv `APP` }}/{{ requiredEnv `ENVIRONMENT` }}-values.yml'
       key: $.image.tag
 
 actions:
@@ -44,5 +44,5 @@ actions:
     kind: github/pullrequest
     scmid: default
     spec:
-      title: "chore(image_tag): update voting-vote image tag"
-      description: "Automated PR to update the Docker image tag."
+      title: "chore(image_tag): update {{ requiredEnv `APP` }} image tag"
+      description: "Automated PR to update the Docker image tag of the {{ requiredEnv `APP` }} app."
