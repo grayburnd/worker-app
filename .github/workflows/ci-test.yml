@@ -20,7 +20,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Create interpolated env var
-        run: echo "DOCKER_IMAGE_URI=${{ vars.AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/${{ env.APP }}:${{ github.event.pull_request.head.sha }}" >> $GITHUB_ENV
+        run: echo "DOCKER_IMAGE_URI=${{ vars.AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/${{ vars.APP }}:${{ github.event.pull_request.head.sha }}" >> $GITHUB_ENV
 
       - name: Checkout local Git Repo
         uses: actions/checkout@v7.0.1
