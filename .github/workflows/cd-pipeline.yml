@@ -10,29 +10,25 @@ permissions:
   contents: read
   id-token: write
   pull-requests: write
-env:
-  AWS_REGION: us-east-1
-  AWS_ACCOUNT_ID: "AWS_ACCOUNT_ID_REDACTED"
-  APP: "voting-worker"
-  ENVIRONMENT: "prod"
-  OIDC_ROLE_NAME: "gh_actions"
 jobs:
   ##Only deploy if the PR was merged to Main. Single branch only.
   deploy:
     if: github.event.pull_request.merged == true
+    environment: prod
     runs-on: ubuntu-latest
     steps:
-
       - name: Checkout local Git Repo
-        uses: actions/checkout@v7.0.1
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
 
       - name: Install Updatecli in the runner
         uses: updatecli/updatecli-action@v3.6.0
 
-      - uses: aws-actions/configure-aws-credentials@v6.2.4
+      - uses: aws-actions/configure-aws-credentials@v6
         with:
-          aws-region: ${{ env.AWS_REGION }}
-          role-to-assume: arn:aws:iam::${{ env.AWS_ACCOUNT_ID }}:role/${{ env.OIDC_ROLE_NAME }}
+          aws-region: ${{ vars.AWS_REGION }}
+          role-to-assume: arn:aws:iam::${{ vars.AWS_ACCOUNT_ID }}:role/${{ vars.OIDC_ROLE_NAME }}
 
       #https://github.com/actions/create-github-app-token
       - uses: actions/create-github-app-token@v3
@@ -50,7 +46,8 @@ jobs:
           UPDATECLI_GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
           TARGET_IMAGE_TAG: ${{ github.event.pull_request.head.sha }}
           OWNER: ${{ github.repository_owner }}
-          TARGET_REPOSITORY: "backend-gitops"
+          TARGET_REPOSITORY: "private-gitops-values"
           TARGET_BRANCH: "main"
-          ENVIRONMENT: ${{ env.ENVIRONMENT }}
-          APP: ${{ env.APP }}
+          ENVIRONMENT: ${{ vars.ENVIRONMENT }}
+          APP: ${{ vars.APP }}
+          TEAM: ${{ vars.TEAM }}
