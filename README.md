@@ -11,6 +11,31 @@ The worker reads these runtime settings from the environment:
 
 The process reconnects to Redis or PostgreSQL when a connection is unavailable. It uses the Redis master name and Sentinel endpoints to find the active Redis master.
 
+## Scope and design decisions
+
+This repository contains the application-side worker that moves vote data from Redis into PostgreSQL. It is intentionally small and operationally focused: there is no user-facing API, no web frontend, and no application framework beyond the runtime needed to process queued messages reliably.
+
+Key design choices in this service:
+
+- `Redis Sentinel` is used to discover the active master and keep the worker resilient to failover events.
+- `PostgreSQL` is treated as the durable source of truth for vote records, with the table created automatically on first startup.
+- The worker is designed to reconnect automatically when Redis or PostgreSQL is temporarily unavailable, rather than crashing the process.
+- Configuration is environment-driven so the same binary can be reused across local, containerized and platform-managed deployments.
+- The broader GitOps and platform workflow is intentionally owned by the parent project repository, while this repo focuses on the runtime behavior of the queue consumer.
+
+This is part of a wider end-to-end platform setup. For the surrounding GitOps, Kubernetes and delivery context, see the parent project documentation in [../aws-eks-gitops-argocd-terraform/README.md](../aws-eks-gitops-argocd-terraform/README.md).
+
+## What's included
+
+This repository includes the pieces needed to build, ship and run the background worker:
+
+- the .NET 7 worker application logic in [Program.cs](Program.cs)
+- the project definition and package references in [Worker.csproj](Worker.csproj)
+- a multi-stage Docker build in [Dockerfile](Dockerfile)
+- the Updatecli automation definition in [updatecli/updatecli.yaml](updatecli/updatecli.yaml)
+
+The worker consumes the `votes` list from Redis, writes each vote to the `votes` table in PostgreSQL and keeps retrying if dependencies are not yet available.
+
 ## Local Development
 
 The project targets .NET 7 and uses `StackExchange.Redis`, `Npgsql` and `Newtonsoft.Json`. Restore and build it with:
@@ -57,4 +82,4 @@ The CI workflow builds an Amazon ECR image tagged with the source commit SHA:
 <account>.dkr.ecr.<region>.amazonaws.com/voting-worker:<git-sha>
 ```
 
-After a merge to `main`, the CD workflow runs Updatecli and updates `apps/voting-worker/prod-values.yml` in the [`backend-gitops`](https://github.com/YOUR_GITHUB_ORG/backend-gitops) repository. See the [platform application guide](https://github.com/YOUR_GITHUB_ORG/aws-eks-gitops-argocd-terraform/blob/main/App/README.md) for the wider application workflow and the [backend GitOps repository](https://github.com/YOUR_GITHUB_ORG/backend-gitops) for the Kubernetes deployment configuration.
+After a merge to `main`, the CD workflow runs Updatecli and updates `apps/voting-worker/prod-values.yml` in the [`backend-gitops`](https://github.com/grayburnd/backend-gitops) repository. See the [platform application guide](https://github.com/grayburnd/aws-eks-gitops-argocd-terraform/blob/main/App/README.md) for the wider application workflow and the [backend GitOps repository](https://github.com/grayburnd/backend-gitops) for the Kubernetes deployment configuration.
